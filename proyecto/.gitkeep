@@ -1,0 +1,7 @@
+# Esta carpeta existe a propósito y empieza vacía.
+# Aquí dentro OpenCode construye el proyecto en vivo (data/, skills/, prompts/,
+# agent.py, app.py, requirements.txt, .streamlit/). Todo eso está en .gitignore:
+# solo se conserva esta carpeta con su .gitkeep.
+#
+# Para reiniciar la demo: borrar todo el contenido de proyecto/ menos este archivo
+# (git clean -fdX lo hace), y queda lista para rearmar desde cero.

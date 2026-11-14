@@ -59,8 +59,8 @@ Doc oficial: https://opencode.ai/docs
 
 ## 3. Crear la API key de Groq (gratis)
 
-Groq da acceso gratuito a modelos abiertos (Llama) con el estándar OpenAI.
-Es igual en los tres sistemas (se hace en el navegador):
+Groq da acceso gratuito a modelos abiertos (se usa `openai/gpt-oss-120b`) con el
+estándar OpenAI. Es igual en los tres sistemas (se hace en el navegador):
 
 1. Entrar a https://console.groq.com y crear una cuenta.
 2. Ir a **API Keys** → **Create API Key**.
@@ -113,15 +113,17 @@ siga abierta**; al cerrarla hay que volver a ponerla.
 
 Streamlit busca la llave en un archivo llamado **`secrets.toml`**, que debe estar
 dentro de una carpeta llamada **`.streamlit`**. Esa carpeta va **en la misma
-carpeta donde está `app.py`**, es decir, dentro de `Kit_demo_OpenCode\`. Queda así:
+carpeta donde está `app.py`**, es decir, dentro de `Kit_demo_OpenCode\proyecto\`
+(ahí construye OpenCode). Queda así:
 
 ```
 Kit_demo_OpenCode\
-├── app.py
-├── agent.py
-├── skills\
-└── .streamlit\
-    └── secrets.toml   ← aquí va la llave
+└── proyecto\
+    ├── app.py
+    ├── agent.py
+    ├── skills\
+    └── .streamlit\
+        └── secrets.toml   ← aquí va la llave
 ```
 
 (El punto al inicio de `.streamlit` es normal: hace que la carpeta quede "oculta".
@@ -132,13 +134,13 @@ crear la carpeta y el archivo de una vez (cambiar la ruta por la de tu equipo):
 
 - **Windows (PowerShell):**
   ```powershell
-  cd "D:\OneDrive\Desktop\Microdencial en creación de agentes de IA\05_Modulo 4.9_ Demo Open code\Kit_demo_OpenCode"
+  cd "D:\OneDrive\Desktop\Microdencial en creación de agentes de IA\05_Modulo 4.9_ Demo Open code\Kit_demo_OpenCode\proyecto"
   New-Item -ItemType Directory -Force .streamlit | Out-Null
   Set-Content -Path .streamlit\secrets.toml -Value 'GROQ_API_KEY = "gsk_tu_key_aqui"' -Encoding utf8
   ```
 - **macOS / Linux (Terminal):**
   ```bash
-  cd ~/ruta/a/Kit_demo_OpenCode
+  cd ~/ruta/a/Kit_demo_OpenCode/proyecto
   mkdir -p .streamlit
   echo 'GROQ_API_KEY = "gsk_tu_key_aqui"' > .streamlit/secrets.toml
   ```
@@ -186,42 +188,54 @@ Requiere Python 3.10 o superior (`python --version` / `python3 --version`).
 
 ---
 
-## 6. Abrir OpenCode en esta carpeta
+## 6. Abrir OpenCode en la subcarpeta `proyecto/`
 
-Desde `Kit_demo_OpenCode\` (los tres sistemas):
+El proyecto se construye **dentro de `proyecto/`**, no en la raíz del kit. Así lo
+que crea OpenCode (data/, skills/, agent.py, app.py, etc.) queda separado de la
+semilla y de los archivos de OpenCode, y reiniciar es solo vaciar esa carpeta.
+
+Desde `Kit_demo_OpenCode\`, entrar a la subcarpeta y abrir OpenCode (los tres
+sistemas):
 
 ```
+cd proyecto
 opencode
 ```
 
-Al abrir, OpenCode lee el `AGENTS.md` de esta carpeta (el contexto del proyecto)
-y descubre la skill `nueva-skill-viaje` de `.opencode/skills/`. Para comprobarlo,
-escribir `@` y ver que aparece `nueva-skill-viaje` en la lista.
+Aunque OpenCode se abre parado en `proyecto/`, lee el `AGENTS.md` del kit (el
+contexto del proyecto) y descubre la skill `nueva-skill-viaje` de
+`.opencode/skills/`, porque busca esos archivos en las **carpetas superiores**
+(la raíz del repositorio git). Para comprobarlo, escribir `@` y ver que aparece
+`nueva-skill-viaje` en la lista. Todo lo que construya caerá dentro de `proyecto/`.
 
 ### Nota de aislamiento (recomendada)
 OpenCode también carga skills personales (de `~/.config/opencode/skills`,
 `~/.claude/skills` y `.agents/`) y el `AGENTS.md` de carpetas superiores. Para que
 en clase **solo** aparezca la skill del proyecto y la demo sea limpia, conviene
-abrir esta carpeta sin carpetas superiores con `AGENTS.md` ni skills personales
-que estorben. (Es el mismo cuidado de aislamiento del Módulo 5.)
+que por encima del kit no haya otro `AGENTS.md` ni skills personales que estorben.
+(Es el mismo cuidado de aislamiento del Módulo 5.)
 
 ---
 
 ## 7. Correr la app ya construida
 
-En los tres sistemas:
+Desde la subcarpeta `proyecto/` (donde quedó `app.py`), en los tres sistemas:
 
 ```
+cd proyecto
 streamlit run app.py
 ```
+
+(Si OpenCode ya estaba abierto parado en `proyecto/`, se corre desde ahí mismo en
+otra terminal.)
 
 ---
 
 ## 8. Reiniciar la demo (dejar el kit como semilla)
 
-El `.gitignore` ignora todo lo que OpenCode genera (el proyecto) y conserva la
-"semilla": este `INSTALACION.md`, el `AGENTS.md`, la carpeta `.opencode/`, el
-`00 Prompts...txt` y el `README.md`.
+El `.gitignore` ignora todo lo que OpenCode genera dentro de `proyecto/` y conserva
+la "semilla": este `INSTALACION.md`, el `AGENTS.md`, la carpeta `.opencode/`, el
+`00 Prompts...txt`, el `README.md` y la carpeta `proyecto/` vacía (con su `.gitkeep`).
 
 Para volver a empezar de cero (si la carpeta es un repositorio git), en los tres
 sistemas:
@@ -230,8 +244,13 @@ sistemas:
 git clean -fdX
 ```
 
-Esto borra solo los archivos ignorados (el proyecto generado) y deja la semilla
-intacta, lista para rearmar el proyecto en vivo.
+Esto borra solo los archivos ignorados —es decir, todo lo que OpenCode creó dentro
+de `proyecto/`, incluido el `secrets.toml`— y deja la semilla intacta: la carpeta
+`proyecto/` queda vacía (solo con su `.gitkeep`), lista para rearmar en vivo.
+
+> Ojo: al vaciar `proyecto/` también se borra `proyecto/.streamlit/secrets.toml`.
+> Si se quiere conservar la llave, copiarla aparte antes de reiniciar y volver a
+> dejarla después (o rehacer el paso 4b).
 
 ### Volver al estado original (rama `base`)
 

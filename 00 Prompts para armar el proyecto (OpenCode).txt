@@ -14,16 +14,26 @@ CÓMO SE USA ESTE ARCHIVO
 - OpenCode pide permiso antes de crear o cambiar archivos. Se lee lo que propone,
   se aprueba, y recién entonces se pasa al siguiente paso.
 - Esta carpeta (el kit) ya trae la SEMILLA: AGENTS.md (el contexto del proyecto)
-  y la skill de OpenCode `nueva-skill-viaje`. OpenCode los lee al abrir aquí.
-- El proyecto que vaya creando OpenCode (data/, skills/, agent.py, app.py, etc.)
-  está en .gitignore: la carpeta se puede reiniciar y rearmar las veces que haga
-  falta (ver INSTALACION.md, paso 7).
+  y la skill de OpenCode `nueva-skill-viaje`. OpenCode los lee aunque se abra en
+  la subcarpeta proyecto/, porque busca el AGENTS.md y las skills en las carpetas
+  superiores (la raíz del repositorio git).
+- IMPORTANTE: el proyecto se construye DENTRO de la subcarpeta `proyecto/`, no en
+  la raíz del kit. Por eso OpenCode se abre parado en proyecto/ (ver abajo): así
+  los archivos que crea (data/, skills/, agent.py, app.py, etc.) caen ahí y no se
+  mezclan con la semilla ni con los archivos de OpenCode.
+- Todo lo que cae en proyecto/ está en .gitignore: la carpeta se puede reiniciar
+  y rearmar las veces que haga falta (ver INSTALACION.md, paso 8) borrando solo su
+  contenido; la carpeta proyecto/ (con su .gitkeep) se conserva.
 - Respaldo: si un paso se traba en vivo, el archivo equivalente ya existe en
   C:\Git_Hub_leoe21\agente-viajes y se puede copiar a mano para seguir.
 
 ANTES DE EMPEZAR (ver INSTALACION.md)
 -------------------------------------
-- Abrir OpenCode EN ESTA CARPETA:  opencode
+- Abrir OpenCode EN LA SUBCARPETA proyecto/:  entrar a ella y abrir OpenCode.
+      cd proyecto
+      opencode
+  (Así todo lo que construye cae en proyecto/. El AGENTS.md y la skill
+  `nueva-skill-viaje` del kit se leen igual, desde la carpeta superior.)
 - La API key de Groq NUNCA se pega en el chat ni en el código. Se configura
   aparte (INSTALACION.md, paso 3): variable de entorno para probar por consola,
   o .streamlit\secrets.toml (ignorado por git) para la app.
@@ -44,17 +54,20 @@ SOBRE LAS DOS CLASES DE "SKILL"
 ===============================================================================
  PASO 0 · CONFIRMAR EL CONTEXTO Y CREAR EL ESQUELETO
 ===============================================================================
-Qué hace: comprobar que OpenCode leyó el AGENTS.md del kit y ve la skill de
-OpenCode, y crear las carpetas vacías del proyecto.
+Qué hace: comprobar que OpenCode leyó el AGENTS.md del kit (lo toma de la carpeta
+superior) y ve la skill de OpenCode, y crear las carpetas vacías del proyecto
+dentro de proyecto/.
 
 Primero, escribir `@` y verificar que en la lista aparece `nueva-skill-viaje`.
-Luego pegar:
+Si no aparece, OpenCode no está leyendo la semilla del kit: cerrarlo y volver a
+abrirlo parado en proyecto/ (cd proyecto; opencode). Luego pegar:
 
 >>> COPIAR DESDE AQUÍ
 Resume en 3 líneas el objetivo y las convenciones del proyecto según el AGENTS.md
-de esta carpeta, para confirmar que lo tienes claro.
-Luego crea solo estas carpetas vacías (sin archivos todavía):
-data/, skills/, prompts/ y .streamlit/.
+del proyecto (está en la carpeta superior a esta), para confirmar que lo tienes
+claro.
+Luego crea, aquí en esta carpeta, solo estas carpetas vacías (sin archivos
+todavía): data/, skills/, prompts/ y .streamlit/.
 <<< HASTA AQUÍ
 
 Revisar: que el resumen mencione "una skill por archivo", "nada de claves en el

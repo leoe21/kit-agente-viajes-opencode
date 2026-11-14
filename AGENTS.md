@@ -1,6 +1,11 @@
 # Proyecto: "Parcero" — planificador de viajes por Colombia
 
-Este archivo lo lee OpenCode al abrir la carpeta. Son las reglas del proyecto.
+Este archivo lo lee OpenCode al abrir la carpeta (lo toma también desde una
+subcarpeta, porque busca en las carpetas superiores). Son las reglas del proyecto.
+
+El proyecto se construye dentro de la subcarpeta `proyecto/`: OpenCode se abre
+parado ahí y todos los archivos (data/, skills/, prompts/, agent.py, app.py,
+requirements.txt, .streamlit/) se crean dentro de proyecto/, no en la raíz del kit.
 
 ## Objetivo
 Construir, paso a paso y con fines educativos, un agente de IA sencillo que
