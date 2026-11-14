@@ -284,7 +284,10 @@ Maneja los errores con un try/except para que la app no se caiga.
 <<< HASTA AQUÍ
 
 Revisar: la key se lee de secrets/entorno (no está escrita); el expander muestra
-las skills. Probar:  streamlit run app.py
+las skills. Probar (la PRIMERA vez hay que instalar las librerías en el mismo
+Python desde el que se lanza streamlit):
+  pip install streamlit openai
+  streamlit run app.py
 
 
 ===============================================================================
@@ -305,8 +308,14 @@ No crees el secrets.toml real; eso lo hago yo a mano con mi key.
 
 Revisar (IMPORTANTE, seguridad): que solo exista el .example y que el secrets.toml
 real quede fuera de git (ya está en el .gitignore del kit). La key real nunca se
-escribe aquí. Probar: crear a mano .streamlit\secrets.toml con la key de Groq y
+escribe aquí. Probar: instalar las librerías, crear a mano el
+.streamlit\secrets.toml con la key de Groq y correr la app:
+  pip install -r requirements.txt
+  (crear .streamlit\secrets.toml con la key de Groq)
   streamlit run app.py
+Si sale "ModuleNotFoundError: No module named 'openai'", faltó el
+pip install -r requirements.txt (o se corrió en otro Python): repetirlo en el
+mismo entorno desde el que se lanza streamlit.
 
 
 ===============================================================================
