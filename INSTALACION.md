@@ -87,8 +87,11 @@ opencode auth login
 Elegir **Groq** en la lista y pegar la llave (`gsk_...`). Queda guardada en el
 equipo (en `~/.local/share/opencode/auth.json`), no hay que repetirlo.
 
-Después, al abrir OpenCode, elegir el modelo con el comando `/models` y escoger
-uno de Groq (por ejemplo `llama-3.3-70b-versatile`).
+Después, al abrir OpenCode, elegir el modelo con el comando `/models`. Para
+**construir** conviene un modelo de **Google Gemini** (por ejemplo `Gemini 3.5
+Flash Lite`): el nivel gratis de Groq tiene un límite de tokens por minuto muy
+bajo para OpenCode y se queda corto. Groq se usa después dentro de la app ya
+construida, no para construirla.
 
 ---
 

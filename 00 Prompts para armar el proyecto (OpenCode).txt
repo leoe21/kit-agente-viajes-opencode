@@ -236,7 +236,8 @@ vuelve al modelo hasta dar la respuesta final.
 Crea agent.py, el cerebro del agente. No debe saber nada de Streamlit (así se
 puede probar por consola). Incluye:
 - Configuración del proveedor: BASE_URL = "https://api.groq.com/openai/v1" y
-  MODELO = "llama-3.3-70b-versatile".
+  MODELO = "openai/gpt-oss-120b" (es el modelo gratis de Groq con soporte de
+  herramientas; los modelos "llama-3.x" ya fueron retirados y dan error 404).
 - cargar_sistema(): lee prompts/sistema.md.
 - crear_cliente(api_key=None): crea el cliente de OpenAI con base_url = BASE_URL;
   usa la key dada o la variable de entorno GROQ_API_KEY; si falta, lanza un error

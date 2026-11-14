@@ -17,7 +17,7 @@ Responde siempre en **español** y explica en frases cortas lo que haces.
   **Groq** (es compatible con el estándar OpenAI). Para cambiar de proveedor solo
   se cambian la URL base, el modelo y la API key.
   - URL base: `https://api.groq.com/openai/v1`
-  - Modelo: `llama-3.3-70b-versatile`
+  - Modelo: `openai/gpt-oss-120b` (modelo gratis de Groq con soporte de herramientas)
 
 ## Estructura del proyecto
 ```
