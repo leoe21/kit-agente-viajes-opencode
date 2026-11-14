@@ -243,19 +243,28 @@ puede probar por consola). Incluye:
   claro. NUNCA escribas una key en el código.
 - ejecutar_agente(cliente, historial, modelo=MODELO, max_vueltas=6): corre el
   bucle. En cada vuelta antepone el mensaje de sistema, llama al modelo pasándole
-  TOOLS y tool_choice="auto". Si el modelo pide herramientas, ejecuta cada una
-  con DISPATCH (capturando errores para que una skill que falle no tumbe el
-  agente), devuelve el resultado como mensaje role "tool" y repite; si el modelo
-  responde texto, lo devuelve. Devuelve (texto_final, pasos), donde pasos lista
-  las skills usadas y sus argumentos. El historial se va modificando para
-  conservar la memoria de la conversación.
+  TOOLS y tool_choice="auto". Si el modelo pide herramientas:
+    1) agrega la respuesta del modelo al historial convertida a diccionario con
+       mensaje.model_dump(exclude_none=True). IMPORTANTE: NO agregues el objeto
+       crudo del modelo al historial; reenviar ese objeto en la siguiente vuelta
+       rompe la librería con un error tipo "process() takes no keyword arguments".
+       Siempre conviértelo con .model_dump(exclude_none=True).
+    2) ejecuta cada herramienta con DISPATCH (capturando errores para que una
+       skill que falle no tumbe el agente) y agrega cada resultado como un
+       mensaje role "tool" con su tool_call_id, name y content (texto).
+    3) repite el bucle para que el modelo lea los resultados.
+  Si el modelo responde texto, lo devuelve. Devuelve (texto_final, pasos), donde
+  pasos lista las skills usadas y sus argumentos. El historial se va modificando
+  para conservar la memoria de la conversación.
 - Un bloque if __name__ == "__main__" que permita probarlo por consola:
     python agent.py "quiero 4 días de playa y fiesta, presupuesto medio"
 Importa TOOLS y DISPATCH desde skills. Coméntalo bien.
 <<< HASTA AQUÍ
 
 Revisar: BASE_URL y MODELO correctos; nada de claves en el código; el bucle
-tiene tope de vueltas. Probar (con la key ya puesta en el entorno):
+tiene tope de vueltas; y que al guardar la respuesta del modelo use
+mensaje.model_dump(exclude_none=True) (NO el objeto crudo). Probar (con la key
+ya puesta en el entorno):
   python agent.py "5 días de naturaleza y café, presupuesto medio"
 
 
@@ -268,6 +277,9 @@ muestra las skills y cuáles usó el agente.
 >>> COPIAR DESDE AQUÍ
 Crea app.py: la interfaz del agente en Streamlit. Debe:
 - Configurar la página (título "Parcero, tu plan de viaje", un ícono de avión).
+- No usar imágenes externas ni st.image con URLs (nada de fotos de Unsplash): el
+  encabezado va solo con texto y un emoji. Evita parámetros que dependan de la
+  versión de Streamlit como use_container_width.
 - Leer la API key con una función que busque primero en st.secrets["GROQ_API_KEY"]
   y luego en la variable de entorno; si no hay key, mostrar un aviso que explique
   cómo crearla gratis en Groq y ponerla en .streamlit/secrets.toml, y detenerse.
