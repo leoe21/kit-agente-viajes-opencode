@@ -1,0 +1,23 @@
+# --- Semilla del kit: lo que SÍ se conserva ---
+# INSTALACION.md, README.md, AGENTS.md, .opencode/, 00 Prompts...txt, este .gitignore
+
+# --- Proyecto generado por OpenCode en vivo: se ignora ---
+# Datos y skills del agente
+/data/
+/skills/
+/prompts/
+# Núcleo y app
+/agent.py
+/app.py
+/requirements.txt
+/README_proyecto.md
+
+# Streamlit: config sí puede ir; el secreto real NUNCA
+/.streamlit/secrets.toml
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.env

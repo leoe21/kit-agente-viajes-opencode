@@ -1,0 +1,346 @@
+===============================================================================
+ PROMPTS PARA ARMAR EL AGENTE EN VIVO CON OPENCODE
+ Demo · Planificador de viajes por Colombia ("Parcero")
+ Proyecto de referencia (solucionario): C:\Git_Hub_leoe21\agente-viajes
+===============================================================================
+
+CÓMO SE USA ESTE ARCHIVO
+------------------------
+- Un prompt por cada ladrillo del mapa de 10 pasos. Se pegan en OpenCode UNO
+  POR UNO, en orden, siguiendo el ciclo de clase:
+      Explico  ->  Pido a OpenCode (pego el prompt)  ->  Revisamos  ->  Probamos
+- Cada prompt está entre las líneas  >>> COPIAR DESDE AQUÍ  y  <<< HASTA AQUÍ.
+  Se copia solo lo que hay entre esas marcas.
+- OpenCode pide permiso antes de crear o cambiar archivos. Se lee lo que propone,
+  se aprueba, y recién entonces se pasa al siguiente paso.
+- Esta carpeta (el kit) ya trae la SEMILLA: AGENTS.md (el contexto del proyecto)
+  y la skill de OpenCode `nueva-skill-viaje`. OpenCode los lee al abrir aquí.
+- El proyecto que vaya creando OpenCode (data/, skills/, agent.py, app.py, etc.)
+  está en .gitignore: la carpeta se puede reiniciar y rearmar las veces que haga
+  falta (ver INSTALACION.md, paso 7).
+- Respaldo: si un paso se traba en vivo, el archivo equivalente ya existe en
+  C:\Git_Hub_leoe21\agente-viajes y se puede copiar a mano para seguir.
+
+ANTES DE EMPEZAR (ver INSTALACION.md)
+-------------------------------------
+- Abrir OpenCode EN ESTA CARPETA:  opencode
+- La API key de Groq NUNCA se pega en el chat ni en el código. Se configura
+  aparte (INSTALACION.md, paso 3): variable de entorno para probar por consola,
+  o .streamlit\secrets.toml (ignorado por git) para la app.
+
+Paso 1 del mapa ("La idea") es solo la explicación de arranque: no lleva prompt.
+Paso 10 ("Desplegar") tampoco usa OpenCode (se hace en share.streamlit.io).
+Los prompts cubren los pasos 2 a 9.
+
+SOBRE LAS DOS CLASES DE "SKILL"
+-------------------------------
+- Skill del AGENTE  = herramienta de Parcero, un archivo Python en skills/ con
+  el patrón TOOL + run (lo que se construye en los pasos 3 y 4).
+- Skill de OPENCODE = capacidad que se le da a OpenCode para construir esas
+  skills bien. Aquí hay una: `nueva-skill-viaje`. Se invoca escribiendo
+  `@nueva-skill-viaje` en el prompt. La usamos como atajo en los pasos 3 y 4.
+
+
+===============================================================================
+ PASO 0 · CONFIRMAR EL CONTEXTO Y CREAR EL ESQUELETO
+===============================================================================
+Qué hace: comprobar que OpenCode leyó el AGENTS.md del kit y ve la skill de
+OpenCode, y crear las carpetas vacías del proyecto.
+
+Primero, escribir `@` y verificar que en la lista aparece `nueva-skill-viaje`.
+Luego pegar:
+
+>>> COPIAR DESDE AQUÍ
+Resume en 3 líneas el objetivo y las convenciones del proyecto según el AGENTS.md
+de esta carpeta, para confirmar que lo tienes claro.
+Luego crea solo estas carpetas vacías (sin archivos todavía):
+data/, skills/, prompts/ y .streamlit/.
+<<< HASTA AQUÍ
+
+Revisar: que el resumen mencione "una skill por archivo", "nada de claves en el
+código" y "español". Probar: ---
+
+
+===============================================================================
+ PASO 2 · LOS DATOS  ->  data/destinos.json
+===============================================================================
+Qué hace: crea el "conocimiento" del agente: una base de destinos en JSON.
+Idea de clase: el agente no inventa; lee de estos datos.
+
+>>> COPIAR DESDE AQUÍ
+Crea el archivo data/destinos.json con una base de destinos reales de turismo en
+Colombia. Pon entre 8 y 10 destinos (por ejemplo Cartagena, Eje Cafetero,
+San Andrés, Medellín, Amazonas/Leticia, Bogotá, Villa de Leyva, Santa Marta/
+Tayrona, Cali, San Gil).
+
+Es un objeto JSON donde cada clave es el destino en minúsculas y sin tildes
+(p. ej. "cartagena", "eje_cafetero"), y su valor es un objeto con EXACTAMENTE
+estos campos:
+- "nombre": texto, el nombre bonito para mostrar.
+- "region": una de "Caribe", "Caribe insular", "Andina", "Selva",
+  "Valle del Cauca".
+- "clima": uno de "cálido", "templado", "frío".
+- "etiquetas": lista de intereses, p. ej. ["playa","cultura","fiesta"].
+- "atractivos": lista de 6 a 8 lugares o planes del destino.
+- "costo_diario": objeto con "economico", "medio" y "alto" en pesos colombianos
+  (enteros), por persona y por día.
+- "mejor_epoca": texto corto.
+- "resumen": una frase que describa el destino.
+
+Usa datos realistas y coherentes. Asegúrate de que el JSON sea válido.
+<<< HASTA AQUÍ
+
+Revisar: JSON válido, los campos exactos, climas y regiones de la lista.
+Probar: --- (se prueba cuando exista la primera skill).
+
+
+===============================================================================
+ PASO 3 · LA PRIMERA SKILL  ->  skills/_datos.py  +  skills/destinos.py
+===============================================================================
+Qué hace: un ayudante para leer los datos, y la primera skill real
+(recomendar destinos). Aquí se ve por primera vez el patrón TOOL + run.
+
+Primero el ayudante de datos (este no es una skill, así que va con prompt normal):
+
+>>> COPIAR DESDE AQUÍ
+Crea skills/_datos.py con utilidades compartidas para leer los datos:
+- cargar_destinos(): abre data/destinos.json (con la ruta calculada desde la
+  ubicación del archivo, no una ruta fija) y devuelve el diccionario completo.
+- normalizar(texto): pasa a minúsculas, quita espacios y quita tildes, para
+  poder comparar sin importar el acento.
+- buscar_destino(nombre): devuelve (clave, datos) del destino que mejor coincide
+  con 'nombre' (coincidencia exacta por clave o por nombre, luego parcial, luego
+  por alguna palabra). Si no encuentra nada, devuelve (None, None).
+Código sencillo y comentado.
+<<< HASTA AQUÍ
+
+Y ahora la PRIMERA skill del agente, usando la skill de OpenCode como atajo:
+
+>>> COPIAR DESDE AQUÍ
+@nueva-skill-viaje
+Crea la skill "recomendar_destinos": recomienda destinos en Colombia según los
+intereses del viajero, el clima preferido y el nivel de presupuesto. Úsala
+cuando el viajero no sabe a dónde ir o pide ideas.
+Parámetros:
+- intereses: lista de textos (OBLIGATORIO), p. ej. ["playa","fiesta"].
+- clima: texto opcional, uno de "cálido"/"templado"/"frío".
+- presupuesto_nivel: texto opcional, uno de "economico"/"medio"/"alto".
+run: recorre los destinos, puntúa según cuántos intereses coinciden con las
+etiquetas (y suma un punto si el clima coincide), ordena, toma los 3 mejores y
+devuelve un texto en español con nombre, región, clima, resumen, con qué encaja
+y el costo diario estimado del nivel pedido (por defecto "medio").
+<<< HASTA AQUÍ
+
+Revisar: que destinos.py importe de ._datos, tenga TOOL + run, y que la skill
+quede registrada en skills/__init__.py (lo hace nueva-skill-viaje). El enum de
+clima lleva tildes. Probar:
+  python -c "from skills.destinos import run; print(run(['playa','fiesta']))"
+
+
+===============================================================================
+ PASO 4 · LAS OTRAS TRES SKILLS  ->  itinerario / presupuesto / maleta
+===============================================================================
+Qué hace: repite el mismo molde TOOL + run tres veces, con el atajo de OpenCode.
+Idea de clase: añadir capacidades = añadir archivos, sin tocar lo demás.
+
+Se pegan de a una (revisar y probar entre cada una):
+
+>>> COPIAR DESDE AQUÍ
+@nueva-skill-viaje
+Crea la skill "armar_itinerario": arma un itinerario día por día para un destino,
+repartiendo sus atractivos a lo largo de los días.
+Parámetros: destino (texto, obligatorio), dias (entero 1 a 15, obligatorio).
+run(destino, dias): reparte los atractivos (unos 2 por día); si sobran días, pone
+"día libre"; si sobran atractivos, los lista aparte; al final menciona la mejor
+época. Si el destino no existe, devuelve un mensaje amable.
+<<< HASTA AQUÍ
+
+>>> COPIAR DESDE AQUÍ
+@nueva-skill-viaje
+Crea la skill "estimar_presupuesto": estima el presupuesto total de un viaje.
+Parámetros (todos obligatorios): destino (texto), dias (entero), viajeros
+(entero), nivel (uno de "economico"/"medio"/"alto").
+run(...): estadía = costo_diario del nivel * dias * viajeros; suma un transporte
+de llegada estimado según la región (define un diccionario de valores por región);
+devuelve el total y el valor por persona en COP, dejando claro que son estimaciones.
+<<< HASTA AQUÍ
+
+>>> COPIAR DESDE AQUÍ
+@nueva-skill-viaje
+Crea la skill "lista_maleta": arma la lista de equipaje para un destino.
+Parámetros: destino (texto, obligatorio), dias (entero, obligatorio),
+actividades (lista de textos, opcional).
+run(destino, dias, actividades=None): arma una lista con básicos, ítems según el
+clima del destino e ítems extra según las actividades y las etiquetas del destino
+(sin repetir). Devuélvela en texto con subtítulos.
+<<< HASTA AQUÍ
+
+Revisar: 3 archivos nuevos, cada uno con TOOL + run, los tres ya en _MODULOS de
+skills/__init__.py. Probar (ejemplos):
+  python -c "from skills.itinerario import run; print(run('Cartagena',4))"
+  python -c "from skills.presupuesto import run; print(run('Cartagena',4,2,'medio'))"
+
+
+===============================================================================
+ PASO 5 · REVISAR QUE LAS SKILLS ESTÉN JUNTAS  ->  skills/__init__.py
+===============================================================================
+Qué hace: la skill de OpenCode ya fue registrando cada skill en _MODULOS. Aquí
+solo se revisa que quedó bien armado el "tablero" que usa el cerebro: TOOLS (para
+mandarle al modelo) y DISPATCH (para ejecutarlas por nombre).
+
+>>> COPIAR DESDE AQUÍ
+Muéstrame skills/__init__.py y confírmame que: (1) _MODULOS tiene los cuatro
+módulos (destinos, itinerario, presupuesto, maleta); (2) TOOLS se construye como
+lista de {"type":"function","function": m.TOOL}; (3) DISPATCH mapea
+m.TOOL["name"] -> m.run. Si algo falta, corrígelo. No lo reescribas si ya está bien.
+<<< HASTA AQUÍ
+
+Revisar: que TOOLS y DISPATCH se construyan recorriendo _MODULOS (no a mano).
+Probar:  python -c "from skills import TOOLS, DISPATCH; print([t['function']['name'] for t in TOOLS])"
+
+
+===============================================================================
+ PASO 6 · LA PERSONALIDAD  ->  prompts/sistema.md
+===============================================================================
+Qué hace: el prompt de sistema. Idea de clase: aquí vive el "carácter" y las
+reglas del agente, separado del código.
+
+>>> COPIAR DESDE AQUÍ
+Crea prompts/sistema.md: el prompt de sistema del agente, en español. Describe a
+"Parcero", un asistente de viajes por Colombia, cálido, colombiano pero
+profesional. Debe incluir:
+- Qué puede hacer: nombra sus cuatro skills (recomendar_destinos,
+  armar_itinerario, estimar_presupuesto, lista_maleta) y cuándo usar cada una,
+  insistiendo en usarlas en vez de inventar datos.
+- Reglas: solo recomienda destinos de sus herramientas; si falta información
+  (días, intereses, viajeros o nivel) la pregunta breve antes de llamar la skill;
+  puede usar varias skills en una respuesta; los precios son estimaciones en COP
+  y aproximados; responde siempre en español; no promete reservas, pagos ni
+  enlaces, solo planeación.
+- Importante: no pide ni maneja datos personales sensibles (documentos, tarjetas,
+  contraseñas); es una demostración educativa.
+<<< HASTA AQUÍ
+
+Revisar: que mencione las 4 skills por su nombre y la regla de no inventar.
+Probar: ---
+
+
+===============================================================================
+ PASO 7 · EL CEREBRO  ->  agent.py
+===============================================================================
+Qué hace: el bucle de "tool use". Idea de clase: esto es lo que convierte un
+chat en un AGENTE: el modelo decide qué skill usar, se ejecuta, y el resultado
+vuelve al modelo hasta dar la respuesta final.
+
+>>> COPIAR DESDE AQUÍ
+Crea agent.py, el cerebro del agente. No debe saber nada de Streamlit (así se
+puede probar por consola). Incluye:
+- Configuración del proveedor: BASE_URL = "https://api.groq.com/openai/v1" y
+  MODELO = "llama-3.3-70b-versatile".
+- cargar_sistema(): lee prompts/sistema.md.
+- crear_cliente(api_key=None): crea el cliente de OpenAI con base_url = BASE_URL;
+  usa la key dada o la variable de entorno GROQ_API_KEY; si falta, lanza un error
+  claro. NUNCA escribas una key en el código.
+- ejecutar_agente(cliente, historial, modelo=MODELO, max_vueltas=6): corre el
+  bucle. En cada vuelta antepone el mensaje de sistema, llama al modelo pasándole
+  TOOLS y tool_choice="auto". Si el modelo pide herramientas, ejecuta cada una
+  con DISPATCH (capturando errores para que una skill que falle no tumbe el
+  agente), devuelve el resultado como mensaje role "tool" y repite; si el modelo
+  responde texto, lo devuelve. Devuelve (texto_final, pasos), donde pasos lista
+  las skills usadas y sus argumentos. El historial se va modificando para
+  conservar la memoria de la conversación.
+- Un bloque if __name__ == "__main__" que permita probarlo por consola:
+    python agent.py "quiero 4 días de playa y fiesta, presupuesto medio"
+Importa TOOLS y DISPATCH desde skills. Coméntalo bien.
+<<< HASTA AQUÍ
+
+Revisar: BASE_URL y MODELO correctos; nada de claves en el código; el bucle
+tiene tope de vueltas. Probar (con la key ya puesta en el entorno):
+  python agent.py "5 días de naturaleza y café, presupuesto medio"
+
+
+===============================================================================
+ PASO 8 · LA CARA  ->  app.py
+===============================================================================
+Qué hace: la interfaz de chat en Streamlit, con una barra lateral didáctica que
+muestra las skills y cuáles usó el agente.
+
+>>> COPIAR DESDE AQUÍ
+Crea app.py: la interfaz del agente en Streamlit. Debe:
+- Configurar la página (título "Parcero, tu plan de viaje", un ícono de avión).
+- Leer la API key con una función que busque primero en st.secrets["GROQ_API_KEY"]
+  y luego en la variable de entorno; si no hay key, mostrar un aviso que explique
+  cómo crearla gratis en Groq y ponerla en .streamlit/secrets.toml, y detenerse.
+- Guardar en st.session_state dos historiales: uno técnico para el modelo (con
+  los mensajes de herramientas) y uno visible para la pantalla.
+- Una barra lateral que explique en una frase cómo funciona, liste las 4 skills
+  (leyéndolas de TOOLS), muestre el modelo usado y tenga un botón "Nueva
+  conversación".
+- Un chat: muestra el historial visible, recibe la pregunta con st.chat_input,
+  llama a ejecutar_agente y muestra la respuesta. Debajo de cada respuesta, un
+  expander "Skills que usó el agente" con las skills y sus argumentos.
+Importa ejecutar_agente, crear_cliente y MODELO de agent, y TOOLS de skills.
+Maneja los errores con un try/except para que la app no se caiga.
+<<< HASTA AQUÍ
+
+Revisar: la key se lee de secrets/entorno (no está escrita); el expander muestra
+las skills. Probar:  streamlit run app.py
+
+
+===============================================================================
+ PASO 9 · LOS TOQUES  ->  requirements.txt · .streamlit · secrets.example
+===============================================================================
+Qué hace: deja el proyecto listo para correr y para subir a GitHub sin filtrar
+la key.
+
+>>> COPIAR DESDE AQUÍ
+Prepara los archivos finales del proyecto:
+- requirements.txt con streamlit y openai (versiones recientes).
+- .streamlit/config.toml con un tema claro sencillo (colores a tu criterio).
+- .streamlit/secrets.toml.example con una línea de ejemplo:
+      GROQ_API_KEY = "gsk_tu_key_aqui"
+  (solo de ejemplo; es el archivo que SÍ se sube).
+No crees el secrets.toml real; eso lo hago yo a mano con mi key.
+<<< HASTA AQUÍ
+
+Revisar (IMPORTANTE, seguridad): que solo exista el .example y que el secrets.toml
+real quede fuera de git (ya está en el .gitignore del kit). La key real nunca se
+escribe aquí. Probar: crear a mano .streamlit\secrets.toml con la key de Groq y
+  streamlit run app.py
+
+
+===============================================================================
+ PASO 10 · DESPLEGAR  (sin OpenCode)
+===============================================================================
+- Subir el proyecto a GitHub (repo propio).
+- En share.streamlit.io: conectar el repo, elegir app.py.
+- En "Advanced settings" / "Secrets" del panel, pegar:
+      GROQ_API_KEY = "la-key-de-verdad"
+  La key va en el panel de Streamlit, NUNCA en el código del repo.
+- Abrir la URL pública y probar el agente en vivo.
+
+
+===============================================================================
+ EXTRA (opcional, si sobra tiempo): AÑADIR UNA SKILL EN VIVO
+===============================================================================
+Para mostrar lo fácil que es ampliar el agente con la skill de OpenCode:
+
+>>> COPIAR DESDE AQUÍ
+@nueva-skill-viaje
+Crea la skill "frases_utiles": devuelve 5 frases útiles para el viajero según el
+destino (saludos, pedir comida, pedir ayuda). Parámetros: destino (texto,
+obligatorio). run(destino): devuelve las frases en texto. Luego regístrala.
+<<< HASTA AQUÍ
+
+Probar: reiniciar la app y pedir "dame frases útiles para Cartagena".
+
+
+===============================================================================
+ NOTA DE SEGURIDAD (vale para toda la demo)
+===============================================================================
+- La API key de Groq no se pega en el chat ni en el código en ningún momento:
+  solo en .streamlit\secrets.toml (ignorado por git) para local, o en el panel
+  de Secrets de Streamlit para el despliegue.
+- Solo datos ficticios/públicos de turismo. El agente no pide datos personales.
+- Si un paso falla en vivo, el archivo equivalente ya está en el solucionario:
+  C:\Git_Hub_leoe21\agente-viajes  (se copia y se sigue).
