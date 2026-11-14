@@ -229,3 +229,21 @@ git clean -fdX
 
 Esto borra solo los archivos ignorados (el proyecto generado) y deja la semilla
 intacta, lista para rearmar el proyecto en vivo.
+
+### Volver al estado original (rama `base`)
+
+El repositorio tiene una rama llamada **`base`**: es una foto congelada del kit
+tal como se comparte. Si se modificó algún archivo de la semilla por error, se
+restaura **todo** al original con:
+
+```
+git fetch origin
+git reset --hard origin/base
+git clean -fdX
+```
+
+- `git fetch origin` trae la rama base.
+- `git reset --hard origin/base` devuelve los archivos de la semilla a su estado original.
+- `git clean -fdX` borra el proyecto que generó OpenCode.
+
+El kit queda como recién descargado, listo para empezar de cero.
